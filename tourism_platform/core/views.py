@@ -20,17 +20,15 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser] 
+    permission_classes = [permissions.AllowAny]
 
 class RouteViewSet(viewsets.ModelViewSet):
     serializer_class = RouteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    queryset = Point.objects.all()
 
     def get_queryset(self):
-        return Route.objects.filter(
-            creator=self.request.user
-        ) | Route.objects.filter(is_public=True)
-
+        return Point.objects.all()  # Возвращает все объекты Point
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return RouteDetailSerializer
@@ -50,10 +48,9 @@ class RouteViewSet(viewsets.ModelViewSet):
 
 class PointViewSet(viewsets.ModelViewSet):
     serializer_class = PointSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    queryset = Point.objects.all()
 
-    def get_queryset(self):
-        return Point.objects.filter(route__creator=self.request.user)
 
     def perform_create(self, serializer):
         route = serializer.validated_data['route']
@@ -65,7 +62,7 @@ class PointViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_routes(request):
-    routes = Route.objects.filter(is_public=True)
+    routes = Route.objects.all
     serializer = RouteSerializer(routes, many=True)
     return Response(serializer.data)
 
